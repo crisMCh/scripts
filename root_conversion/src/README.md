@@ -6,11 +6,11 @@
                *$ python3 /Documents/root/Singles.txt*\
                \
 -> the script will return a document with the same name as the input but with the extension .dat and the formatting required\
--> the output will be in the same path as the input file \
+-> the output will be in the same path as the input file 
   
 # Behavior  
 The script: 
- - removes the first 3 lines of text ( *, headers, *)
+ - removes the first 3 lines and the last line of text ( *, headers, *)
  - removes all * in the input document
  - replaces all NULL values with 0
  - saves the output in a .dat file 
