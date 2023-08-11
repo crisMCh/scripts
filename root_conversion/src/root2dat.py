@@ -1,26 +1,28 @@
+''' usage: python3 root2dat.py full_path_to_root_file desired_tree_2_extract
+    original code and more scripts found at https://github.com/crisMCh/scripts
+'''
+
 import os
 import sys
-import ROOT
+import ROOT # type: ignore
 
-#take first argument as file name
-inputfile = sys.argv[1]
-# inputfile = "/mnt/windows/Uwintu/work/scripts/root_conversion/test_data/test.root"
-desiredTree = "Singles"
+INPUTFILE = sys.argv[1]
+DESIRED_TREE = sys.argv[2]    # e.g. "Singles"
+
 
 # --- save the output at the same path as input file. Change if desired!
-outputpath = os.path.dirname(inputfile) + "/"
-outputfile= outputpath + desiredTree +".dat"
+outputpath = os.path.dirname(INPUTFILE) + "/"
+outputfile = outputpath + DESIRED_TREE + ".dat"
 
 intermadiaryfile = outputfile + ".int"
 
+root_data = ROOT.TFile.Open(INPUTFILE, "READ")
+tree = root_data.Get(DESIRED_TREE)
 
-root_data = ROOT.TFile.Open(inputfile, "READ")
-tree  = root_data.Get(desiredTree)
-
-# tree.SetScanField(0); #SetScanField(maxrows)-default 50; 0 -> show all raws of the tree; 
+# tree.SetScanField(0); #SetScanField(maxrows)-default 50; 0 -> show all raws of the tree;
 tree.GetPlayer().SetScanRedirect(True)
 tree.GetPlayer().SetScanFileName(intermadiaryfile)
-tree.Scan("*") 
+tree.Scan("*")
 
 
 with open(intermadiaryfile) as f:
@@ -36,33 +38,5 @@ with open(intermadiaryfile) as f:
                 outf.write(line)
 
 os.remove(intermadiaryfile)
-print("Intermediary file {} was removed".format(intermadiaryfile))
-print("Your file is at {}".format(outputfile))
-
-
-
-# leaves = tree.GetListOfLeaves()
-
-# treeEntries = tree.GetEntries()
-
-# entry_list = []
-
-# for i in range(0,leaves.GetEntries()) :
-#     leaf = leaves.At(i)
-#     print(leaf)
-#     name = leaf.GetName()
-#     entry_list.append(name)
-
-# for i in range(0,leaves.GetEntries()) :
-#     leaf = leaves.At(i)
-#     name = leaf.GetName()
-#     #print("Leaf name: {}".format(name))
-#     for entryNum in range(0,treeEntries): 
-#         if entryNum < 2:
-#             tree.GetEntry(entryNum)
-#             entry_list.append(getattr(tree,name))
-        
-# with open(outputfile, 'w+') as outf:
-#     outf.writelines(str(entry_list))
-
-
+print(f"Intermediary file {intermadiaryfile} was removed")
+print(f"Your file is at {outputfile}")
