@@ -14,6 +14,7 @@ def main():
     #start_numbercrunching()
     wait_for_numbercrunching()
     #finalize_work()
+    wait_for_numbercrunching()
     #download_from_remote()
 
 
@@ -50,6 +51,7 @@ def my_queue_isempty():
 def get_queue_status():
     ''' Runs a command to get the current queue status. '''
     command = ["ls", "-la"]     # TODO: replace with command to get Q status
+    #command = ["squeue", "-u $USER"]
     commandline = wrap_in_ssh(command)
 
     try:
@@ -84,22 +86,50 @@ def wrap_in_ssh(commandline):
 
 
 def upload_to_remote():
+    ''' Uploading work is not a use case at this point.'''
     raise NotImplementedError
 
 def download_from_remote():
+    # TODO: implement
     raise NotImplementedError
 
 def prepare_work():
-    ''' Could run the splitter. '''
+    ''' Preparing the work currently happens on the remote end.'''
     raise NotImplementedError
 
-def start_numbercrunching():
-    ''' Could feed the beast. '''
-    raise NotImplementedError
 
-def finalize_work():
-    ''' Could run the merger. '''
-    raise NotImplementedError
+def start_numbercrunching(target_folder, mac_file):
+    ''' Runs the simulation on the cluster. '''
+    
+    # ./run_Simulation.sh <Name-of-target-folder> <main-mac-file-to-call>
+    command = ["./run_Simulation.sh", target_folder, mac_file]
+    commandline = wrap_in_ssh(command)
+
+    try:
+        result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT, 
+                                text=True, check=True, timeout=15)
+    except subprocess.CalledProcessError as err:
+        # Process ran but returned non-zero. If excepted, handle here.
+        print(err.returncode)
+        raise
+    return result.stdout
+
+
+def finalize_work(root_file_name, output_folder):
+    ''' Calls the script to merge results and extract singles. '''
+
+    # Usage: ./merge_and_extract.sh root-file-name output-folder
+    command = ["./merge_and_extract.sh", root_file_name, output_folder]
+    commandline = wrap_in_ssh(command)
+
+    try:
+        result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT, 
+                                text=True, check=True, timeout=15)
+    except subprocess.CalledProcessError as err:
+        # Process ran but returned non-zero. If excepted, handle here.
+        print(err.returncode)
+        raise
+    return result.stdout
 
 
 if __name__ == "__main__":

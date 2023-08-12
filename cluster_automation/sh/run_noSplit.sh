@@ -63,8 +63,8 @@ if [[ ! -e $WORK_DIR ]]; then
     mkdir -p "$WORK_DIR/$DATE"
     echo "Work directory= $WORK_DIR"
 
-    #rsync -avh --progress $(pwd)/* $WORK_DIR
     rsync -avh --progress $SOURCE_DIR/output $WORK_DIR
+    #rsync -avh --progress $(pwd)/* $WORK_DIR
 
 fi
 
