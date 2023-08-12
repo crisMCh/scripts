@@ -23,7 +23,7 @@ def main(worklist):
         wait_for_numbercrunching()
         finalize_work(target_folder, mac_file)
         wait_for_numbercrunching()
-        #download_from_remote()
+        download_from_remote(target_folder)
 
 
 def wait_for_numbercrunching(timeout=(24 * 60 * 60)):
@@ -44,8 +44,8 @@ def my_queue_isempty():
     queue_status = get_queue_status()
     empty = False
     
-    # FIXME: to be generic we need to find out our user name on the cluster ($USER) first and use it here
-    if "chifu" in queue_status:
+    (USER, _) = get_user_host()
+    if USER in queue_status:
         empty = False
     # Test that at least some expected string was returned (e.g. table header)
     elif "JOBID" in queue_status:
@@ -78,9 +78,7 @@ def wrap_in_ssh(commandline):
     ''' Takes a command line and wraps it to be executed remotely through SSH. '''
 
     LIVE = False
-    USER = "chifu"
-    HOST = "141.44.5.38"
-
+    (USER, HOST) = get_user_host()
     user_host = f"{USER}@{HOST}"
     # unpack original list of args into a single string
     remote_cmd = f"{' '.join(commandline)}"
@@ -99,9 +97,26 @@ def upload_to_remote():
     ''' Uploading work is not a use case at this point.'''
     raise NotImplementedError
 
-def download_from_remote():
-    # TODO: implement
-    raise NotImplementedError
+def download_from_remote(target_folder):
+    ''' Downloads the work results from the cluster. '''
+    (USER, HOST) = get_user_host()
+    BASE_PATH = "/beegfs2/scratch/"
+    source = f"{USER}@{HOST}:{BASE_PATH}{USER}/JOB/{target_folder}/output/"
+    target = f"~cris/nextcloudshare/Simulations/{target_folder}/output/"
+
+    commandline = ["sshpass -f .ssh/ovgu-cluster-pass rsync", "-av", "-e ssh", "--include '*/'", "--include='*.dat'", "--exclude='*'", source, target]
+
+    try:
+        result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT, 
+                                text=True, check=True, timeout=15)
+    except subprocess.CalledProcessError as err:
+        # Process ran but returned non-zero. If excepted, handle here.
+        print(err.returncode)
+        raise
+    
+    return result.stdout
+
+
 
 def prepare_work():
     ''' Preparing the work currently happens on the remote end.'''
@@ -141,6 +156,10 @@ def finalize_work(target_folder, root_file_name):
         raise
     return result.stdout
 
+def get_user_host():
+    USER = "chifu"
+    HOST = "141.44.5.38"
+    return (USER, HOST)
 
 if __name__ == "__main__":
     def dualiter(singleiter):
