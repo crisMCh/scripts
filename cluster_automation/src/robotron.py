@@ -4,18 +4,26 @@ import time
 import os
 import subprocess
 from subprocess import PIPE, STDOUT
+import argparse
 
-def main():
-    ''' Meow '''
-    print("Henlo, worlf!")
+def main(worklist):
+    ''' Automation script for running and retrieving work on the Uni computing cluster.
+        The script needs to run on a machine with ssh access to the cluster (through VPN).
+        Accepts a list with an arbitrary number of pairs (target_folder, macfile) to be 
+        processed sequentially.
+    '''
+    print("Robotron awakes!")
 
-    #upload_to_remote()
-    #prepare_work()
-    #start_numbercrunching()
-    wait_for_numbercrunching()
-    #finalize_work()
-    wait_for_numbercrunching()
-    #download_from_remote()
+    for (target_folder, mac_file) in worklist:
+        print((target_folder, mac_file))
+        print("\n")
+        #upload_to_remote()
+        #prepare_work()
+        start_numbercrunching(target_folder, mac_file)
+        wait_for_numbercrunching()
+        finalize_work(target_folder, mac_file)
+        wait_for_numbercrunching()
+        #download_from_remote()
 
 
 def wait_for_numbercrunching(timeout=(24 * 60 * 60)):
@@ -35,23 +43,23 @@ def my_queue_isempty():
     ''' Parses the queue status to check if the queue is finished. '''
     queue_status = get_queue_status()
     empty = False
-
-    # TODO: implement Q status parsing
-    # Make sure to test that at least some expected string was returned (e.g. table header)
-    print(queue_status)
-    if "cris" in queue_status:
+    
+    # FIXME: to be generic we need to find out our user name on the cluster ($USER) first and use it here
+    if "chifu" in queue_status:
         empty = False
-    elif "HEADER" in queue_status:
+    # Test that at least some expected string was returned (e.g. table header)
+    elif "JOBID" in queue_status:
         empty = True
     else:
+        print(queue_status)
         raise ValueError("Unexpected queue status response")
     return empty
 
 
 def get_queue_status():
     ''' Runs a command to get the current queue status. '''
-    command = ["ls", "-la"]     # TODO: replace with command to get Q status
-    #command = ["squeue", "-u $USER"]
+
+    command = ["squeue", "-u $USER"]
     commandline = wrap_in_ssh(command)
 
     try:
@@ -68,20 +76,22 @@ def get_queue_status():
 
 def wrap_in_ssh(commandline):
     ''' Takes a command line and wraps it to be executed remotely through SSH. '''
-    user = "cris"
-    host = "criegsulikk.lan.jonthe.net"
 
-    user_host = f"{user}@{host}"
+    LIVE = False
+    USER = "chifu"
+    HOST = "141.44.5.38"
+
+    user_host = f"{USER}@{HOST}"
     # unpack original list of args into a single string
     remote_cmd = f"{' '.join(commandline)}"
 
-    if os.name == "posix":
-        wrapped = ["ssh", user_host, remote_cmd]
-    elif os.name == "nt":
+    if LIVE:
+        wrapped = ["sshpass -f .ssh/ovgu-cluster-pass ssh", user_host, remote_cmd]
+    else:
+        user_host = "cris@criegsulikk.lan.jonthe.net"
+        remote_cmd = "ls -la"
         where_is_the_klink = r"C:\ProgramData\chocolatey\bin\klink.exe"
         wrapped = [where_is_the_klink, '-batch', user_host, remote_cmd]
-    else:
-        raise NotImplementedError
     return wrapped
 
 
@@ -115,11 +125,11 @@ def start_numbercrunching(target_folder, mac_file):
     return result.stdout
 
 
-def finalize_work(root_file_name, output_folder):
+def finalize_work(target_folder, root_file_name):
     ''' Calls the script to merge results and extract singles. '''
 
     # Usage: ./merge_and_extract.sh root-file-name output-folder
-    command = ["./merge_and_extract.sh", root_file_name, output_folder]
+    command = ["./merge_and_extract.sh", root_file_name, target_folder]
     commandline = wrap_in_ssh(command)
 
     try:
@@ -133,4 +143,23 @@ def finalize_work(root_file_name, output_folder):
 
 
 if __name__ == "__main__":
-    main()
+    def dualiter(singleiter):
+        iterable = iter(singleiter)
+        while True:
+            try:
+                yield next(iterable), next(iterable)
+            except StopIteration:
+                break
+
+    parser = argparse.ArgumentParser(description='Feed me!')
+    parser.add_argument('targetfolder_macfile', nargs='+')
+    args = parser.parse_args()
+    
+    if len(args.targetfolder_macfile) % 2:
+        parser.error('filepairs arg should be pairs of values')
+    else:
+        worklist = []
+        for targetfolder, macfile in dualiter(args.targetfolder_macfile):
+            worklist.append((targetfolder, macfile))
+
+    main(worklist)
