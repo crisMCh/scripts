@@ -1,5 +1,18 @@
+OFFLINE = True
+
 import time
 import subprocess
+if not OFFLINE:
+    import subprocess
+else:
+    from subprocess import CompletedProcess
+    class subprocess:
+        def __init__(self) -> None:
+            pass
+        def run(commandline, stdout, stderr, text, check, timeout):
+            proc = CompletedProcess("", 0, stdout="JOBID", stderr="")
+            print(' '.join(commandline))
+            return proc
 from subprocess import PIPE, STDOUT
 import argparse
 
@@ -20,11 +33,11 @@ def main(worklist):
         #continue
         #upload_to_remote()
         #prepare_work()
-        #start_numbercrunching(target_folder, mac_file)
+        start_numbercrunching(target_folder, mac_file)
         wait_for_numbercrunching()
-        #finalize_work(target_folder, mac_file)
+        finalize_work(target_folder, mac_file)
         wait_for_numbercrunching()
-        #download_from_remote(target_folder)
+        download_from_remote(target_folder)
 
 
 def debug(fn):
@@ -88,20 +101,11 @@ def get_queue_status():
 
 def wrap_in_ssh(commandline):
     """ Takes a command line and wraps it to be executed remotely through SSH."""
-    LIVE = False
     (USER, HOST) = get_user_host()
     user_host = f"{USER}@{HOST}"
     # unpack original list of args into a single string
     remote_cmd = f"{' '.join(commandline)}"
-
-    if LIVE:
-        wrapped = ["sshpass -f .ssh/ovgu-cluster-pass ssh", user_host, remote_cmd]
-    else:
-        user_host = "cris@criegsulikk.lan.jonthe.net"
-        remote_cmd = "ls -la"
-        where_is_the_klink = r"C:\ProgramData\chocolatey\bin\klink.exe"
-        wrapped = [where_is_the_klink, '-batch', user_host, remote_cmd]
-    return wrapped
+    return ["sshpass -f ~cris/.ssh/ovgu-cluster-pass ssh", user_host, remote_cmd]
 
 
 def upload_to_remote():
@@ -115,8 +119,7 @@ def download_from_remote(target_folder):
     BASE_PATH = "/beegfs2/scratch/"
     source = f"{USER}@{HOST}:{BASE_PATH}{USER}/JOB/{target_folder}/output/"
     target = f"~cris/nextcloudshare/Simulations/{target_folder}/output/"
-
-    commandline = ["sshpass -f .ssh/ovgu-cluster-pass rsync", "-av", "-e ssh", "--include '*/'", "--include='*.dat'", "--exclude='*'", source, target]
+    commandline = ["sshpass -f ~cris/.ssh/ovgu-cluster-pass rsync", "-av", "-e ssh", "--include '*/'", "--include='*.dat'", "--exclude='*'", source, target]
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT, 
@@ -135,7 +138,7 @@ def prepare_work():
 
 def start_numbercrunching(target_folder, mac_file):
     """ Runs the simulation on the cluster. """
-    command = ["./run_Simulation.sh", target_folder, mac_file]
+    command = ["~chifu/scratch/tmp/hemispheric_PET/run_Simulation.sh", target_folder, mac_file]
     commandline = wrap_in_ssh(command)
 
     try:
@@ -150,7 +153,7 @@ def start_numbercrunching(target_folder, mac_file):
 
 def finalize_work(target_folder, root_file_name):
     """ Calls the script to merge results and extract singles."""
-    command = ["./merge_and_extract.sh", root_file_name, target_folder]
+    command = ["~chifu/scratch/tmp/hemispheric_PET/merge_and_extract.sh", root_file_name, target_folder]
     commandline = wrap_in_ssh(command)
 
     try:
