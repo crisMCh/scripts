@@ -144,7 +144,8 @@ def start_numbercrunching(target_folder, mac_file):
 
 def finalize_work(target_folder, root_file_name):
     """ Calls the script to merge results and extract singles."""
-    command = f"/home/chifu/scratch/tmp/hemispheric_PET/merge_and_extract.sh {root_file_name} {target_folder}"
+    script = "/home/chifu/scratch/tmp/hemispheric_PET/merge_and_extract.sh"
+    command = f"{script} {root_file_name} {target_folder}"
     commandline = wrap_in_ssh(command)
 
     try:
@@ -159,16 +160,16 @@ def finalize_work(target_folder, root_file_name):
 
 def get_user_host():
     """ Provides login info."""
-    USER = "chifu"
-    HOST = "141.44.5.38"
-    return (USER, HOST)
+    user = "chifu"
+    host = "141.44.5.38"
+    return (user, host)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Feed me!')
-    parser.add_argument('targetfolder_macfile', 
-                        nargs='+', 
-                        metavar='target_folder mac_file', 
+    parser.add_argument('targetfolder_macfile',
+                        nargs='+',
+                        metavar='target_folder mac_file',
                         help='one or more pairs of (target folder, mac file) seperated by a space')
     arguments = parser.parse_args()
 
