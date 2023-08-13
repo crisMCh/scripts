@@ -15,6 +15,7 @@ else:
             return proc
 from subprocess import PIPE, STDOUT
 import argparse
+import shlex
 
 def main(worklist):
     """ Automation script for running and retrieving work on the Uni computing cluster.
@@ -85,7 +86,7 @@ def my_queue_isempty():
 
 def get_queue_status():
     """ Runs a command to get the current queue status."""
-    command = ["squeue", "-u $USER"]
+    command = "/usr/bin/squeue -u $USER"
     commandline = wrap_in_ssh(command)
 
     try:
@@ -103,9 +104,9 @@ def wrap_in_ssh(commandline):
     """ Takes a command line and wraps it to be executed remotely through SSH."""
     (USER, HOST) = get_user_host()
     user_host = f"{USER}@{HOST}"
-    # unpack original list of args into a single string
-    remote_cmd = f"{' '.join(commandline)}"
-    return ["sshpass -f ~cris/.ssh/ovgu-cluster-pass ssh", user_host, remote_cmd]
+
+    cmdline = f"/usr/bin/sshpass -v -f /home/cris/.ssh/ovgu-cluster-pass /usr/bin/ssh -v {user_host} '{commandline}'"
+    return shlex.split(cmdline)
 
 
 def upload_to_remote():
@@ -117,9 +118,10 @@ def download_from_remote(target_folder):
     """ Downloads the work results from the cluster. """
     (USER, HOST) = get_user_host()
     BASE_PATH = "/beegfs2/scratch/"
+    # FIXME: Use shlex!
     source = f"{USER}@{HOST}:{BASE_PATH}{USER}/JOB/{target_folder}/output/"
-    target = f"~cris/nextcloudshare/Simulations/{target_folder}/output/"
-    commandline = ["sshpass -f ~cris/.ssh/ovgu-cluster-pass rsync", "-av", "-e ssh", "--include '*/'", "--include='*.dat'", "--exclude='*'", source, target]
+    target = f"/home/cris/nextcloudshare/Simulations/{target_folder}/output/"
+    commandline = ["/usr/bin/sshpass -f /home/cris/.ssh/ovgu-cluster-pass rsync", "-av", "-e ssh", "--include '*/'", "--include='*.dat'", "--exclude='*'", source, target]
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT, 
@@ -138,7 +140,7 @@ def prepare_work():
 
 def start_numbercrunching(target_folder, mac_file):
     """ Runs the simulation on the cluster. """
-    command = ["~chifu/scratch/tmp/hemispheric_PET/run_Simulation.sh", target_folder, mac_file]
+    command = f"/home/chifu/scratch/tmp/hemispheric_PET/run_Simulation.sh {target_folder} {mac_file}"
     commandline = wrap_in_ssh(command)
 
     try:
@@ -153,7 +155,7 @@ def start_numbercrunching(target_folder, mac_file):
 
 def finalize_work(target_folder, root_file_name):
     """ Calls the script to merge results and extract singles."""
-    command = ["~chifu/scratch/tmp/hemispheric_PET/merge_and_extract.sh", root_file_name, target_folder]
+    command = f"/home/chifu/scratch/tmp/hemispheric_PET/merge_and_extract.sh {root_file_name} {target_folder}"
     commandline = wrap_in_ssh(command)
 
     try:
