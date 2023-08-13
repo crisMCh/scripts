@@ -23,11 +23,11 @@ def main(worklist):
         #continue
         #upload_to_remote()
         #prepare_work()
-        start_numbercrunching(target_folder, mac_file)
-        wait_for_numbercrunching()
-        finalize_work(target_folder, mac_file)
-        wait_for_numbercrunching()
-        download_from_remote(target_folder)
+        print(start_numbercrunching(target_folder, mac_file))
+        print(wait_for_numbercrunching())
+        print(finalize_work(target_folder, mac_file))
+        print(wait_for_numbercrunching())
+        print(download_from_remote(target_folder))
 
 
 def debug(f_n):
@@ -106,7 +106,7 @@ def download_from_remote(target_folder):
     (user, host) = get_user_host()
     base_path = "/beegfs2/scratch/"
     source = f"{user}@{host}:{base_path}{user}/JOB/{target_folder}/output/"
-    target = f"/home/cris/nextcloudshare/Simulations/{target_folder}/output/"
+    target = f"/home/cris/nextcloudshare/Simulations_Test/{target_folder}/"
     sshp = "/usr/bin/sshpass -f /home/cris/.ssh/ovgu-cluster-pass"
     rsyn = f"rsync -av -e ssh --include '*/' --include='*.dat' --exclude='*' {source} {target}"
     commandline = shlex.split(f"{sshp} {rsyn}")
