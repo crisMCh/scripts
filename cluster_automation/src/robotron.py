@@ -19,14 +19,12 @@ def main(worklist):
 
     for (target_folder, mac_file) in worklist:
         print(f"\nWorking on: {target_folder}")
-
-        #continue
         #upload_to_remote()
         #prepare_work()
         print(start_numbercrunching(target_folder, mac_file))
-        print(wait_for_numbercrunching())
+        wait_for_numbercrunching()
         print(finalize_work(target_folder, mac_file))
-        print(wait_for_numbercrunching())
+        wait_for_numbercrunching()
         print(download_from_remote(target_folder))
 
 
@@ -44,14 +42,16 @@ def debug(f_n):
 
 def wait_for_numbercrunching(timeout=24 * 60 * 60):
     """ Sleeps until the queue has finished. Raises TimeoutError on timeout."""
-    poll_interval = 1       # in seconds .. slow down adequately
+    poll_interval = 3       # in seconds .. slow down adequately
+    print('Waiting for jobs to finish ', end='', flush=True)
     while not my_queue_isempty():
         timeout -= poll_interval
         if timeout > 0:
-            print("Still waiting")
+            print('.', end='', flush=True)
             time.sleep(poll_interval)
         else:
             raise TimeoutError("Timed out waiting for queue to finish")
+    print("\nDone!")
 
 
 def my_queue_isempty():
@@ -106,7 +106,7 @@ def download_from_remote(target_folder):
     (user, host) = get_user_host()
     base_path = "/beegfs2/scratch/"
     source = f"{user}@{host}:{base_path}{user}/JOB/{target_folder}/output/"
-    target = f"/home/cris/nextcloudshare/Simulations_Test/{target_folder}/"
+    target = f"/home/cris/nextcloudshare/Simulations_Test/{target_folder}/"  #TODO: test path
     sshp = "/usr/bin/sshpass -f /home/cris/.ssh/ovgu-cluster-pass"
     rsyn = f"rsync -av -e ssh --include '*/' --include='*.dat' --exclude='*' {source} {target}"
     commandline = shlex.split(f"{sshp} {rsyn}")
