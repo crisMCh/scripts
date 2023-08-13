@@ -9,7 +9,7 @@ else:
     class subprocess:
         def __init__(self) -> None:
             pass
-        def run(commandline, stdout, stderr, text, check, timeout):
+        def run(commandline, stdout, stderr, universal_newlines, check, timeout):
             proc = CompletedProcess("", 0, stdout="JOBID", stderr="")
             print(' '.join(commandline))
             return proc
@@ -90,7 +90,7 @@ def get_queue_status():
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT, 
-                                text=True, check=True, timeout=15)
+                                universal_newlines=True, check=True, timeout=15)
     except subprocess.CalledProcessError as err:
         # Process ran but returned non-zero. If excepted, handle here.
         if err.returncode == 1 and "No supported authentication methods available" in err.stdout:
@@ -123,7 +123,7 @@ def download_from_remote(target_folder):
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT, 
-                                text=True, check=True, timeout=15)
+                                universal_newlines=True, check=True, timeout=15)
     except subprocess.CalledProcessError as err:
         # Process ran but returned non-zero. If excepted, handle here.
         print(err.returncode)
@@ -143,7 +143,7 @@ def start_numbercrunching(target_folder, mac_file):
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT, 
-                                text=True, check=True, timeout=15)
+                                universal_newlines=True, check=True, timeout=15)
     except subprocess.CalledProcessError as err:
         # Process ran but returned non-zero. If excepted, handle here.
         print(err.returncode)
@@ -158,7 +158,7 @@ def finalize_work(target_folder, root_file_name):
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT, 
-                                text=True, check=True, timeout=15)
+                                universal_newlines=True, check=True, timeout=15)
     except subprocess.CalledProcessError as err:
         # Process ran but returned non-zero. If excepted, handle here.
         print(err.returncode)
