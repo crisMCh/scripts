@@ -16,7 +16,7 @@ def upload():
     remote = f"/home/{user}/scratch/tmp/hemispheric_PET/"
     target = f"{user}@{host}:{remote}"
     sshp = "/usr/bin/sshpass -f /home/cris/.ssh/ovgu-cluster-pass"
-    rsyn = f"rsync -av -e ssh {source} {target}"
+    rsyn = f"rsync --chmod=ug+rwx -av -e ssh {source} {target}"
     commandline = f"{sshp} {rsyn}"
     #print(commandline)
     commandline = shlex.split(commandline)
