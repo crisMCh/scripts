@@ -4,3 +4,4 @@ root_conversion/.vscode/launch.json
 root_conversion/test_data/Singles_.dat
 root_conversion/test_data/test.root
 cluster_automation/.vscode/
+cluster_automation/src/__pycache__/
