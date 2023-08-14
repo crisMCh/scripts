@@ -23,9 +23,11 @@ def main(worklist):
         #prepare_work()
         print(start_numbercrunching(target_folder, mac_file))
         wait_for_numbercrunching()
+        #remove_splits(target_folder, mac_file)
         print(finalize_work(target_folder, mac_file))
         wait_for_numbercrunching()
         print(download_from_remote(target_folder))
+        
 
 
 def debug(f_n):
@@ -163,6 +165,24 @@ def get_user_host():
     user = "chifu"
     host = "141.44.5.38"
     return (user, host)
+
+def remove_splits(target_folder, root_file_name):
+    """ Removes the splited root files (root_file_name[0-10].root)."""
+    #TODO: test  (rm HemisphericPET2LayersBoth_LYSO_0_1MBq_1s_t*[0-9]*.root)
+    (user, _) = get_user_host()
+    sourcep = f"/beegfs2/scratch/{user}/JOB/{target_folder}/output/"
+    command= f'usr/bin/rm/ {sourcep}{root_file_name}*[0-9]*.root'
+    commandline = wrap_in_ssh(command)
+
+    try:
+        result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT,
+                                universal_newlines=True, check=True, timeout=15)
+    except subprocess.CalledProcessError as err:
+        # Process ran but returned non-zero. If excepted, handle here.
+        print(err.returncode)
+        raise
+    return result.stdout
+    
 
 
 if __name__ == "__main__":
