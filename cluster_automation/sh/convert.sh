@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euf -o pipefail
+#set -euf -o pipefail
 
 # Author: Cristina Chifu, June 2023
 #

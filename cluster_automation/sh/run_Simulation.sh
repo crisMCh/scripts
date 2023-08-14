@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euf -o pipefail
+#set -euf -o pipefail
 
 #
 # Author: Cristina Chifu, 13.5.2023
@@ -28,7 +28,7 @@ DATE=$(date +"%d-%m-%Y")
 # Where the output goes aka target folder
 WORK_DIR=/beegfs2/scratch/${USER}/JOB/$1
 # Where the script is called from
-SOURCE_DIR=$(pwd)
+SOURCE_DIR=/beegfs2/scratch/${USER}/tmp/hemispheric_PET
 echo "Source directory = $SOURCE_DIR"
 
 # Preparing the environment. Note: .Gate folder should be in home/user - check with: echo $GC_DOT_GATE_DIR
