@@ -166,12 +166,12 @@ def get_user_host():
     host = "141.44.5.38"
     return (user, host)
 
+
 def remove_splits(target_folder, root_file_name):
     """ Removes the splited root files (root_file_name[0-10].root)."""
-    #TODO: test  (rm HemisphericPET2LayersBoth_LYSO_0_1MBq_1s_t*[0-9]*.root)
     (user, _) = get_user_host()
     sourcep = f"/beegfs2/scratch/{user}/JOB/{target_folder}/output/"
-    command= f'usr/bin/rm/ {sourcep}{root_file_name}*[0-9]*.root'
+    command= f'/usr/bin/rm {sourcep}{root_file_name}*[0-9]*.root'
     commandline = wrap_in_ssh(command)
 
     try:
