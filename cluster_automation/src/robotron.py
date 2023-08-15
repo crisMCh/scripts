@@ -25,8 +25,8 @@ def main(worklist):
         wait_for_numbercrunching()
         print(finalize_work(target_folder, mac_file))
         wait_for_numbercrunching()
-        print(remove_splits(target_folder, mac_file))
         print(download_from_remote(target_folder))
+        print(remove_splits(target_folder, mac_file))
         
 
 
@@ -81,7 +81,7 @@ def get_queue_status():
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT,
-                                universal_newlines=True, check=True, timeout=15)
+                                universal_newlines=True, check=True)
     except subprocess.CalledProcessError as err:
         # Process ran but returned non-zero. If excepted, handle here.
         if err.returncode == 1 and "No supported authentication methods available" in err.stdout:
@@ -108,14 +108,14 @@ def download_from_remote(target_folder):
     (user, host) = get_user_host()
     base_path = "/beegfs2/scratch/"
     source = f"{user}@{host}:{base_path}{user}/JOB/{target_folder}/output/"
-    target = f"/home/cris/nextcloudshare/Simulations_Test/{target_folder}/"  #TODO: test path
+    target = f"/home/cris/nextcloudshare/Simulations_100mm/{target_folder}/"  #TODO: test path
     sshp = "/usr/bin/sshpass -f /home/cris/.ssh/ovgu-cluster-pass"
     rsyn = f"rsync -av -e ssh --include '*/' --include='*.dat' --exclude='*' {source} {target}"
     commandline = shlex.split(f"{sshp} {rsyn}")
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT,
-                                universal_newlines=True, check=True, timeout=15)
+                                universal_newlines=True, check=True)
     except subprocess.CalledProcessError as err:
         # Process ran but returned non-zero. If excepted, handle here.
         print(err.returncode)
@@ -136,7 +136,7 @@ def start_numbercrunching(target_folder, mac_file):
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT,
-                                universal_newlines=True, check=True, timeout=15)
+                                universal_newlines=True, check=True, timeout=60)
     except subprocess.CalledProcessError as err:
         # Process ran but returned non-zero. If excepted, handle here.
         print(err.returncode)
@@ -152,7 +152,7 @@ def finalize_work(target_folder, root_file_name):
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT,
-                                universal_newlines=True, check=True, timeout=15)
+                                universal_newlines=True, check=True)
     except subprocess.CalledProcessError as err:
         # Process ran but returned non-zero. If excepted, handle here.
         print(err.returncode)
@@ -176,7 +176,7 @@ def remove_splits(target_folder, root_file_name):
 
     try:
         result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT,
-                                universal_newlines=True, check=True, timeout=15)
+                                universal_newlines=True, check=True)
     except subprocess.CalledProcessError as err:
         # Process ran but returned non-zero. If excepted, handle here.
         print(err.returncode)
