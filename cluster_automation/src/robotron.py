@@ -44,7 +44,7 @@ def debug(f_n):
 
 def wait_for_numbercrunching(timeout=24 * 60 * 60):
     """ Sleeps until the queue has finished. Raises TimeoutError on timeout."""
-    poll_interval = 3       # in seconds .. slow down adequately
+    poll_interval = 10       # in seconds .. slow down adequately
     print('Waiting for jobs to finish ', end='', flush=True)
     while not my_queue_isempty():
         timeout -= poll_interval
