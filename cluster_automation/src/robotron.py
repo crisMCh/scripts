@@ -23,9 +23,9 @@ def main(worklist):
         #prepare_work()
         print(start_numbercrunching(target_folder, mac_file))
         wait_for_numbercrunching()
-        #remove_splits(target_folder, mac_file)
         print(finalize_work(target_folder, mac_file))
         wait_for_numbercrunching()
+        print(remove_splits(target_folder, mac_file))
         print(download_from_remote(target_folder))
         
 
