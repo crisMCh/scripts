@@ -27,7 +27,6 @@ def main(worklist):
         wait_for_numbercrunching()
         print(download_from_remote(target_folder))
         print(remove_splits(target_folder, mac_file))
-        
 
 
 def debug(f_n):
@@ -78,16 +77,23 @@ def get_queue_status():
     """ Runs a command to get the current queue status."""
     command = "/usr/bin/squeue -u $USER"
     commandline = wrap_in_ssh(command)
+    retries_left = 6
 
-    try:
-        result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT,
-                                universal_newlines=True, check=True)
-    except subprocess.CalledProcessError as err:
-        # Process ran but returned non-zero. If excepted, handle here.
-        if err.returncode == 1 and "No supported authentication methods available" in err.stdout:
-            raise ConnectionAbortedError(err.stdout) from err
-        raise
-    return result.stdout
+    while True:
+        try:
+            result = subprocess.run(commandline, stdout=PIPE, stderr=STDOUT,
+                                    universal_newlines=True, check=True)
+        except subprocess.CalledProcessError as err:
+            if err.returncode == 1 and "No supported authentication methods avail" in err.stdout:
+                raise ConnectionAbortedError(err.stdout) from err
+            if err.returncode == 255 and retries_left:
+                print('x', end='', flush=True)
+                retries_left -= 1
+                if retries_left:
+                    time.sleep(10)
+                    continue
+                raise
+        return result.stdout
 
 
 def wrap_in_ssh(commandline):
@@ -108,7 +114,7 @@ def download_from_remote(target_folder):
     (user, host) = get_user_host()
     base_path = "/beegfs2/scratch/"
     source = f"{user}@{host}:{base_path}{user}/JOB/{target_folder}/output/"
-    target = f"/home/cris/nextcloudshare/Simulations_100mm/{target_folder}/"  #TODO: test path
+    target = f"/home/cris/nextcloudshare/Simulations_100mm/{target_folder}/"
     sshp = "/usr/bin/sshpass -f /home/cris/.ssh/ovgu-cluster-pass"
     rsyn = f"rsync -av -e ssh --include '*/' --include='*.dat' --exclude='*' {source} {target}"
     commandline = shlex.split(f"{sshp} {rsyn}")
@@ -182,7 +188,6 @@ def remove_splits(target_folder, root_file_name):
         print(err.returncode)
         raise
     return result.stdout
-    
 
 
 if __name__ == "__main__":
