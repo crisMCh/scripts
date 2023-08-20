@@ -10,6 +10,7 @@ import subprocess
 from subprocess import PIPE, STDOUT
 import argparse
 import shlex
+import re
 
 def main(worklist):
     """ Main """
@@ -21,10 +22,10 @@ def main(worklist):
         print(f"\nWorking on: {target_folder}")
         #upload_to_remote()
         #prepare_work()
-        print(start_numbercrunching(target_folder, mac_file))
-        wait_for_numbercrunching()
-        print(finalize_work(target_folder, mac_file))
-        wait_for_numbercrunching()
+        job_ids = start_numbercrunching(target_folder, mac_file)
+        wait_for_numbercrunching(job_ids)
+        job_ids = finalize_work(target_folder, mac_file)
+        wait_for_numbercrunching(job_ids)
         print(download_from_remote(target_folder))
         print(remove_splits(target_folder, mac_file))
 
@@ -41,11 +42,11 @@ def debug(f_n):
     return wrapper
 
 
-def wait_for_numbercrunching(timeout=24 * 60 * 60):
+def wait_for_numbercrunching(job_ids, timeout=24 * 60 * 60):
     """ Sleeps until the queue has finished. Raises TimeoutError on timeout."""
     poll_interval = 10       # in seconds .. slow down adequately
     print('Waiting for jobs to finish ', end='', flush=True)
-    while not my_queue_isempty():
+    while not my_queue_isempty(job_ids):
         timeout -= poll_interval
         if timeout > 0:
             print('.', end='', flush=True)
@@ -55,15 +56,10 @@ def wait_for_numbercrunching(timeout=24 * 60 * 60):
     print("\nDone!")
 
 
-def my_queue_isempty():
+def my_queue_isempty(job_ids):
     """ Parses the queue status to check if the queue is finished."""
     queue_status = get_queue_status()
-    (user, _) = get_user_host()
-
-    # As long as our username appears in the queue we assume our work is not done yet.
-    # This check could be improved by looking for specific job IDs for cases
-    # when the user may be running other work from outside this script instance.
-    if user in queue_status:
+    if any((id in queue_status) for id in job_ids):
         empty = False
     # Test that at least some expected string was returned (e.g. table header)
     elif "JOBID" in queue_status:
@@ -147,7 +143,7 @@ def start_numbercrunching(target_folder, mac_file):
         # Process ran but returned non-zero. If excepted, handle here.
         print(err.returncode)
         raise
-    return result.stdout
+    return find_job_ids(result.stdout)
 
 
 def finalize_work(target_folder, root_file_name):
@@ -163,7 +159,7 @@ def finalize_work(target_folder, root_file_name):
         # Process ran but returned non-zero. If excepted, handle here.
         print(err.returncode)
         raise
-    return result.stdout
+    return find_job_ids(result.stdout)
 
 
 def get_user_host():
@@ -188,6 +184,12 @@ def remove_splits(target_folder, root_file_name):
         print(err.returncode)
         raise
     return result.stdout
+
+
+def find_job_ids(text):
+    """ Scans the output of the job splitter for job IDs."""
+    pattern = r"Submitted batch job (\d+)"
+    return re.findall(pattern, text)
 
 
 if __name__ == "__main__":
