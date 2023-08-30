@@ -114,7 +114,7 @@ def download_from_remote(target_folder):
     (user, host) = get_user_host()
     base_path = "/beegfs2/scratch/"
     source = f"{user}@{host}:{base_path}{user}/JOB/{target_folder}/output/"
-    target = f"/home/cris/nextcloudshare/Simulations_100mm/{target_folder}/"
+    target = f"/home/cris/nextcloudshare/Simulations/Simulations_100mm/2/{target_folder}/"
     sshp = "/usr/bin/sshpass -f /home/cris/.ssh/ovgu-cluster-pass"
     rsyn = f"rsync -av -e ssh --include '*/' --include='*.dat' --exclude='*' {source} {target}"
     commandline = shlex.split(f"{sshp} {rsyn}")
