@@ -73,7 +73,7 @@ else
 fi
 
 # CALL THE JOB 
-cd $SOURCE_DIR
+cd $WORK_DIR
 echo $(pwd)
 srun bash -c "Gate mac/$2.mac" 
 
