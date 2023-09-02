@@ -28,8 +28,8 @@ DATE=$(date +"%d-%m-%Y")
 #WORKINGDIRECTORY=$(pwd)/$1
 # where the output goes/ aka target folder
 WORK_DIR=/beegfs2/scratch/${USER}/JOB/$1
-#where the script is called from
-SOURCE_DIR=$(pwd)
+# Where the script is called from
+SOURCE_DIR=/beegfs2/scratch/${USER}/tmp/hemispheric_PET
 echo "Source directory = $SOURCE_DIR"
 
 #SBATCH --partition=big
@@ -53,7 +53,7 @@ echo "Source directory = $SOURCE_DIR"
 source /beegfs1/software/geant4/gate/gate9.2_install/bin/gate_env.sh
 export GC_DOT_GATE_DIR=$WORK_DIR
 
-#remove old output files
+# Remove old output files
 cd $SOURCE_DIR 
 rm -r output/*
 
@@ -62,22 +62,19 @@ if [[ ! -e $WORK_DIR ]]; then
     chmod a+w $(pwd)
     mkdir -p "$WORK_DIR/$DATE"
     echo "Work directory= $WORK_DIR"
-
-    rsync -avh --progress $SOURCE_DIR/output $WORK_DIR
-    #rsync -avh --progress $(pwd)/* $WORK_DIR
-
+    rsync -avh --progress $SOURCE_DIR/* $WORK_DIR
+else
+    echo "Overwriting files and running new job..."
+    chmod a+w $(pwd)
+    rm -rfv $WORK_DIR
+    mkdir -p "$WORK_DIR/$DATE"
+    echo "Work directory= $WORK_DIR"
+    rsync -avh --progress $SOURCE_DIR/* $WORK_DIR
 fi
 
-# CALL THE JOB SPLITTER
+# CALL THE JOB 
 cd $SOURCE_DIR
 echo $(pwd)
 srun bash -c "Gate mac/$2.mac" 
 
-# I could not make gjm work properly. Run hadd manually instead
-#gjm  $GC_DOT_GATE_DIR/.Gate/$2/$2.split
-
-#copy output to current target
-cd $SOURCE_DIR 
-#cp -r output/ $WORK_DIR
-rsync -avh --progress $SOURCE_DIR/output $WORK_DIR
-echo "Done with running run_Simulation script!"
+exit 0
